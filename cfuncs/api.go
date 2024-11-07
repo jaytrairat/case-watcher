@@ -4,7 +4,7 @@ import "fmt"
 
 // sendAPIRequest sends a POST request to the API with the given message
 func SendAPIRequest(message string) error {
-	fmt.Printf(message)
+	fmt.Println(message)
 	// // Create the HTTP request
 	// req, err := http.NewRequest("POST", APIUrl, strings.NewReader("message="+message))
 	// if err != nil {
