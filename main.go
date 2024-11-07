@@ -82,9 +82,9 @@ func WatchDir(ctx context.Context, dirPath string) error {
 						}
 
 						// Call the API to send a message
-						// if err := cfuncs.sendAPIRequest(fmt.Sprintf("มีโฟลเดอร์ Case ใหม่ชื่อ %s\nสร้างเมื่อ %s เวลา %s น.", filepath.Base(event.Name), time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"))); err != nil {
-						// 	log.Println("ERROR sending API request:", err)
-						// }
+						if err := sendAPIRequest(fmt.Sprintf("มีโฟลเดอร์ Case ใหม่ชื่อ %s\nสร้างเมื่อ %s เวลา %s น.", filepath.Base(event.Name), time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"))); err != nil {
+							log.Println("ERROR sending API request:", err)
+						}
 					}
 				}
 
