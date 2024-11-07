@@ -52,7 +52,7 @@ func WatchDir(ctx context.Context, db *sql.DB, dirPath string) error {
 						fmt.Print(logEntry)
 
 						if cfuncs.ShouldSendAPIRequest(db) {
-							message := fmt.Sprintf("มีโฟลเดอร์ Case ใหม่ชื่อ %s\nสร้างเมื่อ %s เวลา %s น.", filepath.Base(event.Name), time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"))
+							message := fmt.Sprintf("%s เวลา %s น.\nมีโฟลเดอร์ Case ใหม่ชื่อ %s", time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"), filepath.Base(event.Name))
 							if err := cfuncs.SendAPIRequest(message); err != nil {
 								log.Println("ERROR sending API request:", err)
 							}

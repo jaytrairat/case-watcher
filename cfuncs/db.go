@@ -44,7 +44,7 @@ func GetLastTimestamp(db *sql.DB) (time.Time, error) {
 
 func ShouldSendAPIRequest(db *sql.DB) bool {
 	lastTimestamp, err := GetLastTimestamp(db)
-	if err != nil || lastTimestamp.IsZero() || time.Since(lastTimestamp) >= 3*time.Second {
+	if err != nil || lastTimestamp.IsZero() || time.Since(lastTimestamp) >= 1*time.Second {
 		return true
 	}
 	fmt.Printf("%s\n", lastTimestamp)
