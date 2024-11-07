@@ -3,7 +3,7 @@ package cfuncs
 import "fmt"
 
 // sendAPIRequest sends a POST request to the API with the given message
-func sendAPIRequest(message string) error {
+func SendAPIRequest(message string) error {
 	fmt.Printf(message)
 	// // Create the HTTP request
 	// req, err := http.NewRequest("POST", APIUrl, strings.NewReader("message="+message))

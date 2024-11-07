@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/jaytrairat/case-watcher/cfuncs"
 )
 
 // LogFile is the name of the log file where created folders will be recorded
@@ -82,7 +83,8 @@ func WatchDir(ctx context.Context, dirPath string) error {
 						}
 
 						// Call the API to send a message
-						if err := sendAPIRequest(fmt.Sprintf("มีโฟลเดอร์ Case ใหม่ชื่อ %s\nสร้างเมื่อ %s เวลา %s น.", filepath.Base(event.Name), time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"))); err != nil {
+						message := fmt.Sprintf("มีโฟลเดอร์ Case ใหม่ชื่อ %s\nสร้างเมื่อ %s เวลา %s น.", filepath.Base(event.Name), time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"))
+						if err := cfuncs.SendAPIRequest(message); err != nil {
 							log.Println("ERROR sending API request:", err)
 						}
 					}
