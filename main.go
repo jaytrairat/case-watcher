@@ -17,13 +17,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// APIUrl is the URL of the API to call when a new folder is detected
-const APIUrl = "http://policeadmin.com:8092/broadcast"
-
-// APIKey is the API key for authorization
-const APIKey = "LDabxoSBFmiedZI2w7o0dVIXbfQnzKV9Bgwy7YNWyfIlB7TWFXPAXS1A1oCN4hNQej7lKxPezvFLYQCtG6f38mAGUw2gKmix71zvw4i5KAJUlHpsPheLF9Q5pgTaUPBi"
-
-// Global variable for the current working directory
 var cwd string
 
 func WatchDir(ctx context.Context, db *sql.DB, dirPath string) error {
@@ -55,18 +48,23 @@ func WatchDir(ctx context.Context, db *sql.DB, dirPath string) error {
 						}
 
 						lastEvent = time.Now()
-						logEntry := fmt.Sprintf("New folder created: %s at %s\n", event.Name, time.Now().Format(time.RFC3339))
+						logEntry := fmt.Sprintf("Case created: %s at %s\n", event.Name, time.Now().Format(time.RFC3339))
 						fmt.Print(logEntry)
+
+						if cfuncs.ShouldSendAPIRequest(db) {
+							message := fmt.Sprintf("มีโฟลเดอร์ Case ใหม่ชื่อ %s\nสร้างเมื่อ %s เวลา %s น.", filepath.Base(event.Name), time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"))
+							if err := cfuncs.SendAPIRequest(message); err != nil {
+								log.Println("ERROR sending API request:", err)
+							}
+						} else {
+							log.Println("Skipped API request. Last record was less than 3 second ago.")
+						}
 
 						_, err := db.Exec("INSERT INTO folder_logs (folder_name, created_at) VALUES (?, ?)", event.Name, time.Now())
 						if err != nil {
 							log.Println("ERROR writing to database:", err)
 						}
 
-						message := fmt.Sprintf("มีโฟลเดอร์ Case ใหม่ชื่อ %s\nสร้างเมื่อ %s เวลา %s น.", filepath.Base(event.Name), time.Now().AddDate(543, 0, 0).Format("02 มกราคม 2006"), time.Now().Format("03.04"))
-						if err := cfuncs.SendAPIRequest(message); err != nil {
-							log.Println("ERROR sending API request:", err)
-						}
 					}
 				}
 

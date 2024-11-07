@@ -2,7 +2,9 @@ package cfuncs
 
 import "fmt"
 
-// sendAPIRequest sends a POST request to the API with the given message
+const APIUrl = "http://policeadmin.com:8092/broadcast"
+const APIKey = "LDabxoSBFmiedZI2w7o0dVIXbfQnzKV9Bgwy7YNWyfIlB7TWFXPAXS1A1oCN4hNQej7lKxPezvFLYQCtG6f38mAGUw2gKmix71zvw4i5KAJUlHpsPheLF9Q5pgTaUPBi"
+
 func SendAPIRequest(message string) error {
 	fmt.Println(message)
 	// // Create the HTTP request

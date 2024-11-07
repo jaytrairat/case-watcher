@@ -2,15 +2,15 @@ package cfuncs
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
 
-// DatabaseFile is the SQLite database file where logs will be stored
 const DatabaseFile = "created_folders.db"
 
-// InitDB initializes the SQLite database and creates the required table if it doesn't exist.
 func InitDB() *sql.DB {
 	db, err := sql.Open("sqlite", DatabaseFile)
 	if err != nil {
@@ -27,4 +27,26 @@ func InitDB() *sql.DB {
 	}
 
 	return db
+}
+
+func GetLastTimestamp(db *sql.DB) (time.Time, error) {
+	var lastTimestamp time.Time
+	row := db.QueryRow("SELECT created_at FROM folder_logs ORDER BY created_at DESC LIMIT 1")
+	err := row.Scan(&lastTimestamp)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return time.Time{}, nil
+		}
+		return time.Time{}, err
+	}
+	return lastTimestamp, nil
+}
+
+func ShouldSendAPIRequest(db *sql.DB) bool {
+	lastTimestamp, err := GetLastTimestamp(db)
+	if err != nil || lastTimestamp.IsZero() || time.Since(lastTimestamp) >= 3*time.Second {
+		return true
+	}
+	fmt.Printf("%s\n", lastTimestamp)
+	return false
 }
