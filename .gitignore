@@ -24,3 +24,4 @@ go.work.sum
 # env file
 .env
 F-2024-001
+*.db
