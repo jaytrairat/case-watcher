@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -13,10 +14,8 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/jaytrairat/case-watcher/cfuncs"
+	_ "github.com/mattn/go-sqlite3"
 )
-
-// LogFile is the name of the log file where created folders will be recorded
-const LogFile = "created_folders.log"
 
 // APIUrl is the URL of the API to call when a new folder is detected
 const APIUrl = "http://policeadmin.com:8092/broadcast"
@@ -28,7 +27,7 @@ const APIKey = "LDabxoSBFmiedZI2w7o0dVIXbfQnzKV9Bgwy7YNWyfIlB7TWFXPAXS1A1oCN4hNQ
 var cwd string
 
 // WatchDir starts watching the specified directory for changes
-func WatchDir(ctx context.Context, dirPath string) error {
+func WatchDir(ctx context.Context, db *sql.DB, dirPath string) error {
 	// Initialize a new watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -38,13 +37,6 @@ func WatchDir(ctx context.Context, dirPath string) error {
 
 	// Define the regex pattern to match folders like F-YYYY-001 or 001
 	folderPattern := regexp.MustCompile(`^(F-\d{4}-\d{3}|\w{1}\d{3})$`)
-
-	// Open or create the log file
-	logFile, err := os.OpenFile(LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open log file: %w", err)
-	}
-	defer logFile.Close()
 
 	// Channel to debounce folder creation events
 	lastEvent := time.Now()
@@ -77,9 +69,10 @@ func WatchDir(ctx context.Context, dirPath string) error {
 						logEntry := fmt.Sprintf("New folder created: %s at %s\n", event.Name, time.Now().Format(time.RFC3339))
 						fmt.Print(logEntry)
 
-						// Write the log entry to the log file
-						if _, err := logFile.WriteString(logEntry); err != nil {
-							log.Println("ERROR writing to log file:", err)
+						// Insert the log entry into the database
+						_, err := db.Exec("INSERT INTO folder_logs (folder_name, created_at) VALUES (?, ?)", event.Name, time.Now())
+						if err != nil {
+							log.Println("ERROR writing to database:", err)
 						}
 
 						// Call the API to send a message
@@ -131,12 +124,6 @@ func main() {
 		log.Fatal("ERROR getting current working directory:", err)
 	}
 
-	// Create the directory if it doesn't exist
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		os.Mkdir(dirPath, 0755)
-		fmt.Println("Created directory:", dirPath)
-	}
-
 	// Set up context with cancel functionality
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -145,9 +132,11 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
+	db := cfuncs.InitDB()
+
 	// Run the watcher in a goroutine
 	go func() {
-		if err := WatchDir(ctx, dirPath); err != nil {
+		if err := WatchDir(ctx, db, dirPath); err != nil {
 			log.Fatal(err)
 		}
 	}()
